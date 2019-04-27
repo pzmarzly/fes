@@ -13,6 +13,11 @@ pub struct Identity {
 
 impl Identity {
     pub fn sign() {}
+    pub fn get_partial(&self) -> PartialIdentity {
+        PartialIdentity {
+            public_key: self.public_key.clone(),
+        }
+    }
 }
 
 impl PartialIdentity {

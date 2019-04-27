@@ -16,4 +16,8 @@ pub enum Error {
     Io(futures::io::Error),
     /// Error originating in protocol crate
     Protocol(protocol::Error),
+    /// Other side sent correct packet, but it was unexpected in current content
+    Logic,
+    /// Other side was not allowed to connect (invalid PartialIdentity)
+    Id,
 }

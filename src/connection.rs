@@ -1,5 +1,8 @@
 use crate::id::{Identity, PartialIdentity};
-use crate::proto::{ClientToServer::*, ServerToClient::*};
+use crate::proto::{
+    ClientToServer::{self, *},
+    ServerToClient::{self, *},
+};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
 
@@ -7,6 +10,7 @@ use crate::Error;
 #[derive(Debug)]
 pub struct SecureConnection<T: Stream> {
     id: Identity,
+    other_id: PartialIdentity,
     stream: StreamWrapper<T>,
 }
 
@@ -33,23 +37,53 @@ impl<T: Stream> Connection<T> {
         mut self,
         other: Option<PartialIdentity>,
     ) -> Result<SecureConnection<T>, Error> {
-        await!(self.stream.send(UpgradeRequest("fts 1".to_string())))?;
-        Ok(SecureConnection {
-            id: self.id,
-            stream: self.stream,
-        })
+        await!(self.stream.send(UpgradeRequest("fts 1 req".to_string())))?;
+        match await!(self.stream.recv::<ServerToClient>())? {
+            UpgradeResponse(s, server_id) => {
+                if s != "fts 1 res" {
+                    return Err(Error::Logic);
+                }
+                if let Some(expected) = other {
+                    if expected != server_id {
+                        return Err(Error::Id);
+                    }
+                }
+                return Ok(SecureConnection {
+                    id: self.id,
+                    other_id: server_id,
+                    stream: self.stream,
+                });
+            }
+            _ => return Err(Error::Logic),
+        }
     }
 
     /// Treat other side of Stream as client, try to upgrade connection to encrypted one.
     ///
     /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(
-        self,
+        mut self,
         accept_only: Option<Vec<PartialIdentity>>,
-    ) -> SecureConnection<T> {
-        SecureConnection {
-            id: self.id,
-            stream: self.stream,
+    ) -> Result<SecureConnection<T>, Error> {
+        if let UpgradeRequest(s) = await!(self.stream.recv::<ClientToServer>())? {
+            if s == "fts 1 req" {
+                await!(self.stream.send(UpgradeResponse(
+                    "fts 1 res".to_string(),
+                    self.id.get_partial()
+                )))?;
+                // TODO: get client public key...
+                return Ok(SecureConnection {
+                    id: self.id,
+                    other_id: PartialIdentity {
+                        public_key: Vec::new(),
+                    },
+                    stream: self.stream,
+                });
+            } else {
+                return Err(Error::Logic);
+            }
+        } else {
+            return Err(Error::Logic);
         }
     }
 }
