@@ -25,15 +25,6 @@ enum ServerToClient {
     UpgradeResponse(String, PartialIdentity),
 }
 
-trait ParcelExt {
-    fn to_bytes(&self) -> Vec<u8>;
-}
-impl<T: Parcel> ParcelExt for T {
-    fn to_bytes(&self) -> Vec<u8> {
-        self.raw_bytes(&protocol::Settings::default()).unwrap()
-    }
-}
-
 use futures::io::{AsyncReadExt, AsyncWriteExt};
 use protocol::Parcel;
 use protocol_derive::Protocol;
@@ -56,7 +47,7 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
     }
 
     async fn send(&mut self, item: impl Parcel) -> Result<(), futures::io::Error> {
-        let bytes = item.to_bytes();
+        let bytes = item.raw_bytes(&protocol::Settings::default()).unwrap();
         await!(self.stream.write_all(&bytes))?;
         Ok(())
     }
