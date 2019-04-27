@@ -1,25 +1,30 @@
-use protocol_derive::Protocol;
+#![feature(futures_api)]
 
 pub mod key;
 
 use key::*;
 
+use futures_util::io::{AsyncReadExt, AsyncWriteExt};
+use protocol_derive::Protocol;
+
 pub struct Connection;
-pub struct MutuallyTrusted {
-    pub my_id: KeyPair,
-    pub other_pub: PublicKey,
-}
-pub struct OtherTrusted;
 
-impl Connection {
-    pub fn encrypt() {}
-    pub fn decrypt() {}
+pub struct Client {
+    pub our_priv: PrivateKey,
+    pub our_pub: PublicKey,
 }
 
-impl MutuallyTrusted {
-    pub fn connect(self) {}
+pub struct Server {
+    pub our_priv: PrivateKey,
+    pub our_pub: PublicKey,
+    pub accepted_clients: Vec<PublicKey>,
 }
 
-impl OtherTrusted {
-    pub fn connect(self) {}
+impl Client {
+    pub async fn into_secure_connection(other: PublicKey) {}
+    pub async fn into_secure_connection_with_unknown() {}
+}
+
+impl Server {
+    pub async fn into_secure_connection() {}
 }
