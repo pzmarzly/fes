@@ -1,0 +1,10 @@
+[package]
+name = "fts"
+version = "0.1.0"
+authors = ["Paweł Zmarzły <pawo2500@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+protocol-derive = "3.1.1"
+x25519-dalek = "0.5.2"
+ed25519-dalek = "0.8.1"
