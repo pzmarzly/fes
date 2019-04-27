@@ -1,4 +1,5 @@
 use protocol_derive::Protocol;
+
 use crate::id::PartialIdentity;
 
 #[derive(Debug, PartialEq, Protocol)]
