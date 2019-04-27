@@ -1,4 +1,4 @@
-use protocol::{Parcel, Error, Settings};
+use protocol::{Error, Parcel, Settings};
 
 pub trait ParcelExt<T> {
     fn to_bytes(&self) -> Vec<u8>;
@@ -11,9 +11,6 @@ impl<T: Parcel> ParcelExt<T> for T {
     }
 
     fn from_bytes(bytes: &[u8]) -> Result<T, Error> {
-        T::from_raw_bytes(
-            bytes,
-            &Settings::default()
-        )
+        T::from_raw_bytes(bytes, &Settings::default())
     }
 }

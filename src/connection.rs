@@ -1,9 +1,12 @@
-use protocol::Parcel;
 use futures::io::{AsyncReadExt, AsyncWriteExt};
+use protocol::Parcel;
 
-use crate::util::ParcelExt;
-use crate::id::{PartialIdentity, Identity};
+use crate::id::{Identity, PartialIdentity};
 use crate::proto::{ClientToServer::*, ServerToClient::*};
+use crate::util::ParcelExt;
+
+pub trait Stream: AsyncReadExt + AsyncWriteExt + Unpin {}
+impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Stream for T {}
 
 #[derive(Debug)]
 pub struct SecureConnection<T> {
@@ -17,7 +20,7 @@ pub struct Connection<T> {
     stream: T,
 }
 
-impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
+impl<T: Stream> Connection<T> {
     pub fn new(id: Identity, stream: T) -> Self {
         Self { id, stream }
     }
@@ -34,8 +37,10 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
     }
 
     async fn send(&mut self, item: impl Parcel) -> Result<(), futures::io::Error> {
-        let bytes = item.to_bytes();
-        await!(self.stream.write_all(&bytes))?;
+        let data = item.to_bytes();
+        let data_len = data.len().to_le_bytes();
+        await!(self.stream.write_all(&data_len))?;
+        await!(self.stream.write_all(&data))?;
         Ok(())
     }
 
