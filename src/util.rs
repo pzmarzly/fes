@@ -1,6 +1,9 @@
 use futures::io::{AsyncReadExt, AsyncWriteExt};
-use protocol::{Error, Parcel, Settings};
+use protocol::{Parcel, Settings};
 
+use crate::Error;
+
+/// Parcel convenience extension - parse and encode Parcels with default settings
 pub trait ParcelExt<T> {
     fn to_bytes(&self) -> Vec<u8>;
     fn from_bytes(bytes: &[u8]) -> Result<T, Error>;
@@ -12,14 +15,16 @@ impl<T: Parcel> ParcelExt<T> for T {
     }
 
     fn from_bytes(bytes: &[u8]) -> Result<T, Error> {
-        T::from_raw_bytes(bytes, &Settings::default())
+        Ok(T::from_raw_bytes(bytes, &Settings::default())?)
     }
 }
 
+/// Alias for `AsyncReadExt + AsyncWriteExt`. See [romio] for example network implementation
+/// [romio]: https://crates.io/crates/romio
 pub trait Stream: AsyncReadExt + AsyncWriteExt + Unpin {}
-
 impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Stream for T {}
 
+/// Low level Stream wrapper. Sends and parses unencrypted Parcels
 #[derive(Debug, PartialEq)]
 pub struct StreamWrapper<T: Stream>(pub T);
 
@@ -27,11 +32,22 @@ impl<T: Stream> StreamWrapper<T> {
     pub fn new(stream: T) -> Self {
         Self(stream)
     }
-    pub async fn send(&mut self, item: impl Parcel) -> Result<(), futures::io::Error> {
+
+    pub async fn send(&mut self, item: impl Parcel) -> Result<(), Error> {
         let data = item.to_bytes();
-        let data_len = data.len().to_le_bytes();
+        let data_len = (data.len() as u32).to_le_bytes();
         await!(self.0.write_all(&data_len))?;
         await!(self.0.write_all(&data))?;
         Ok(())
+    }
+
+    pub async fn recv<P: Parcel>(&mut self) -> Result<P, Error> {
+        let mut data_len = [0u8; 4];
+        await!(self.0.read_exact(&mut data_len))?;
+
+        let mut data = Vec::with_capacity(u32::from_le_bytes(data_len) as usize);
+        await!(self.0.read_exact(&mut data))?;
+
+        Ok(P::from_bytes(&data)?)
     }
 }

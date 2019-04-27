@@ -1,13 +1,16 @@
 use crate::id::{Identity, PartialIdentity};
 use crate::proto::{ClientToServer::*, ServerToClient::*};
 use crate::util::{Stream, StreamWrapper};
+use crate::Error;
 
+/// Established and encrypted 1:1 connection
 #[derive(Debug)]
 pub struct SecureConnection<T: Stream> {
     id: Identity,
     stream: StreamWrapper<T>,
 }
 
+/// Established but unencrypted 1:1 connection
 #[derive(Debug)]
 pub struct Connection<T: Stream> {
     id: Identity,
@@ -22,10 +25,14 @@ impl<T: Stream> Connection<T> {
         }
     }
 
+    /// Treat other side of Stream as server, try to upgrade connection to encrypted one.
+    ///
+    /// By specifying `other`, you can make sure you are connecting to server you intended
+    /// (think: certificate pinning).
     pub async fn client_side_upgrade(
         mut self,
         other: Option<PartialIdentity>,
-    ) -> Result<SecureConnection<T>, futures::io::Error> {
+    ) -> Result<SecureConnection<T>, Error> {
         await!(self.stream.send(UpgradeRequest("fts 1".to_string())))?;
         Ok(SecureConnection {
             id: self.id,
@@ -33,6 +40,9 @@ impl<T: Stream> Connection<T> {
         })
     }
 
+    /// Treat other side of Stream as client, try to upgrade connection to encrypted one.
+    ///
+    /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(
         self,
         accept_only: Option<Vec<PartialIdentity>>,
