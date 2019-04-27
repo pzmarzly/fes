@@ -1,30 +1,73 @@
-#![feature(futures_api)]
+#![feature(async_await, await_macro)]
+pub mod id;
 
-pub mod key;
+use id::*;
 
-use key::*;
+#[derive(Debug)]
+pub struct SecureConnection<T> {
+    id: Identity,
+    stream: T,
+}
 
-use futures_util::io::{AsyncReadExt, AsyncWriteExt};
+#[derive(Debug)]
+pub struct Connection<T> {
+    id: Identity,
+    stream: T,
+}
+
+#[derive(Debug, PartialEq, Protocol)]
+enum ClientToServer {
+    UpgradeRequest(String),
+}
+
+#[derive(Debug, PartialEq, Protocol)]
+enum ServerToClient {
+    UpgradeResponse(String, PartialIdentity),
+}
+
+trait ParcelExt {
+    fn to_bytes(&self) -> Vec<u8>;
+}
+impl<T: Parcel> ParcelExt for T {
+    fn to_bytes(&self) -> Vec<u8> {
+        self.raw_bytes(&protocol::Settings::default()).unwrap()
+    }
+}
+
+use futures::io::{AsyncReadExt, AsyncWriteExt};
+use protocol::Parcel;
 use protocol_derive::Protocol;
 
-pub struct Connection;
+impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
+    pub fn new(id: Identity, stream: T) -> Self {
+        Self { id, stream }
+    }
 
-pub struct Client {
-    pub our_priv: PrivateKey,
-    pub our_pub: PublicKey,
-}
+    pub async fn client_side_upgrade(
+        mut self,
+        other: Option<PartialIdentity>,
+    ) -> Result<SecureConnection<T>, futures::io::Error> {
+        use ClientToServer::*;
+        await!(self.send(UpgradeRequest("fts 1".to_string())))?;
+        Ok(SecureConnection {
+            id: self.id,
+            stream: self.stream,
+        })
+    }
 
-pub struct Server {
-    pub our_priv: PrivateKey,
-    pub our_pub: PublicKey,
-    pub accepted_clients: Vec<PublicKey>,
-}
+    async fn send(&mut self, item: impl Parcel) -> Result<(), futures::io::Error> {
+        let bytes = item.to_bytes();
+        await!(self.stream.write_all(&bytes))?;
+        Ok(())
+    }
 
-impl Client {
-    pub async fn into_secure_connection(other: PublicKey) {}
-    pub async fn into_secure_connection_with_unknown() {}
-}
-
-impl Server {
-    pub async fn into_secure_connection() {}
+    pub async fn server_side_upgrade(
+        self,
+        accept_only: Option<Vec<PartialIdentity>>,
+    ) -> SecureConnection<T> {
+        SecureConnection {
+            id: self.id,
+            stream: self.stream,
+        }
+    }
 }

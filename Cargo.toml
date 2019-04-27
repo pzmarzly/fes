@@ -5,7 +5,8 @@ authors = ["Paweł Zmarzły <pawo2500@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+protocol = "3.1.1"
 protocol-derive = "3.1.1"
 x25519-dalek = "0.5.2"
 ed25519-dalek = "0.8.1"
-futures-util = "0.2.1"
+futures-preview = "0.3.0-alpha.15"
