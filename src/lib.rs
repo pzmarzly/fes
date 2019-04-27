@@ -1,7 +1,7 @@
 #![feature(async_await, await_macro)]
 pub mod id;
-
-use id::*;
+mod proto;
+pub mod util;
 
 #[derive(Debug)]
 pub struct SecureConnection<T> {
@@ -15,19 +15,9 @@ pub struct Connection<T> {
     stream: T,
 }
 
-#[derive(Debug, PartialEq, Protocol)]
-enum ClientToServer {
-    UpgradeRequest(String),
-}
-
-#[derive(Debug, PartialEq, Protocol)]
-enum ServerToClient {
-    UpgradeResponse(String, PartialIdentity),
-}
-
 use futures::io::{AsyncReadExt, AsyncWriteExt};
-use protocol::Parcel;
-use protocol_derive::Protocol;
+use crate::util::ParcelExt;
+use crate::id::{Identity, PartialIdentity};
 
 impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
     pub fn new(id: Identity, stream: T) -> Self {
@@ -38,7 +28,7 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
         mut self,
         other: Option<PartialIdentity>,
     ) -> Result<SecureConnection<T>, futures::io::Error> {
-        use ClientToServer::*;
+        use crate::proto::ClientToServer::*;
         await!(self.send(UpgradeRequest("fts 1".to_string())))?;
         Ok(SecureConnection {
             id: self.id,
@@ -46,8 +36,8 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Connection<T> {
         })
     }
 
-    async fn send(&mut self, item: impl Parcel) -> Result<(), futures::io::Error> {
-        let bytes = item.raw_bytes(&protocol::Settings::default()).unwrap();
+    async fn send(&mut self, item: impl protocol::Parcel) -> Result<(), futures::io::Error> {
+        let bytes = item.to_bytes();
         await!(self.stream.write_all(&bytes))?;
         Ok(())
     }
