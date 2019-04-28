@@ -1,10 +1,7 @@
+use ed25519_dalek::{Keypair, SecretKey, PublicKey};
 use protocol_derive::Protocol;
-use ed25519_dalek::SecretKey;
-use rand::Rng;
-use rand::OsRng;
+use rand::rngs::OsRng;
 use sha2::Sha512;
-use ed25519_dalek::Keypair;
-use ed25519_dalek::Signature;
 
 /// Public key used to verify signatures
 #[derive(Debug, PartialEq, Clone, Protocol)]
@@ -22,14 +19,19 @@ pub struct Identity {
 impl Identity {
     pub fn generate() -> Self {
         let mut rng: OsRng = OsRng::new().unwrap();
-        let keypair: Keypair = Keypair::generate::<Sha512, _>(&mut rng);
-        let mut ret = Self { private_key: [0u8; 32], public_key: [0u8, 32] };
-        let keypair_bytes = keypair.to_bytes();
-        ret.private_key.copy_from_slice(&keypair_bytes[0..32]);
-        ret.public_key.copy_from_slice(&keypair_bytes[32..64]);
-        ret
+        let Keypair { secret, public } = Keypair::generate::<Sha512, _>(&mut rng);
+        Self {
+            private_key: secret.to_bytes(),
+            public_key: public.to_bytes(),
+        }
     }
-    pub fn sign() {}
+    pub fn sign(&self, data: &[u8]) -> [u8; 64] {
+        let keypair = Keypair {
+            secret: SecretKey::from_bytes(&self.private_key).unwrap(),
+            public: PublicKey::from_bytes(&self.public_key).unwrap(),
+        };
+        keypair.sign::<Sha512>(data).to_bytes()
+    }
     /// Clone `Identity` public key into new `PartialIdentity`
     pub fn get_partial(&self) -> PartialIdentity {
         PartialIdentity {

@@ -90,7 +90,7 @@ impl<T: Stream> Connection<T> {
         return Ok(SecureConnection {
             id: self.id,
             other_id: PartialIdentity {
-                public_key: Vec::new(),
+                public_key: [0; 32],
             },
             stream: self.stream,
         });
