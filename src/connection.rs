@@ -1,28 +1,28 @@
-use crate::id::{Identity, PartialIdentity};
 use crate::proto::{
     ClientToServer::{self, *},
     ServerToClient::{self, *},
 };
+use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
 
 /// Established and encrypted 1:1 connection
 #[derive(Debug)]
 pub struct SecureConnection<T: Stream> {
-    id: Identity,
-    other_id: PartialIdentity,
+    id: SigningKeyPair,
+    other_id: SigningPubKey,
     stream: StreamWrapper<T>,
 }
 
 /// Established but unencrypted 1:1 connection
 #[derive(Debug)]
 pub struct Connection<T: Stream> {
-    id: Identity,
+    id: SigningKeyPair,
     stream: StreamWrapper<T>,
 }
 
 impl<T: Stream> Connection<T> {
-    pub fn new(id: Identity, stream: T) -> Self {
+    pub fn new(id: SigningKeyPair, stream: T) -> Self {
         Self {
             id,
             stream: StreamWrapper::new(stream),
@@ -35,7 +35,7 @@ impl<T: Stream> Connection<T> {
     /// (think: certificate pinning).
     pub async fn client_side_upgrade(
         mut self,
-        other: Option<PartialIdentity>,
+        other: Option<SigningPubKey>,
     ) -> Result<SecureConnection<T>, Error> {
         // Send request
         await!(self.stream.send(UpgradeRequest("fts 1 req".to_string())))?;
@@ -68,7 +68,7 @@ impl<T: Stream> Connection<T> {
     /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(
         mut self,
-        accept_only: Option<Vec<PartialIdentity>>,
+        accept_only: Option<Vec<SigningPubKey>>,
     ) -> Result<SecureConnection<T>, Error> {
         // Get request
         match await!(self.stream.recv::<ClientToServer>())? {
@@ -89,7 +89,7 @@ impl<T: Stream> Connection<T> {
         // TODO: get client public key...
         return Ok(SecureConnection {
             id: self.id,
-            other_id: PartialIdentity {
+            other_id: SigningPubKey {
                 public_key: [0; 32],
             },
             stream: self.stream,

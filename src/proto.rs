@@ -1,6 +1,6 @@
 use protocol_derive::Protocol;
 
-use crate::id::PartialIdentity;
+use crate::signature::SigningPubKey;
 
 #[derive(Debug, PartialEq, Protocol)]
 pub enum ClientToServer {
@@ -9,5 +9,5 @@ pub enum ClientToServer {
 
 #[derive(Debug, PartialEq, Protocol)]
 pub enum ServerToClient {
-    UpgradeResponse(String, PartialIdentity),
+    UpgradeResponse(String, SigningPubKey),
 }

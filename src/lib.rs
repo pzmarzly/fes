@@ -1,8 +1,8 @@
 #![feature(async_await, await_macro)]
 
 pub mod connection;
-pub mod id;
 pub mod prelude;
+pub mod signature;
 pub mod util;
 
 mod proto;
@@ -18,6 +18,6 @@ pub enum Error {
     Protocol(protocol::Error),
     /// Other side sent correct packet, but it was unexpected in current content
     Logic,
-    /// Other side was not allowed to connect (invalid PartialIdentity)
+    /// Other side was not allowed to connect (invalid SigningPubKey)
     Id,
 }
