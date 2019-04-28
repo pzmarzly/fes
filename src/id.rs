@@ -1,4 +1,4 @@
-use ed25519_dalek::{Keypair, SecretKey, PublicKey};
+use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature};
 use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use sha2::Sha512;
@@ -41,5 +41,11 @@ impl Identity {
 }
 
 impl PartialIdentity {
-    pub fn verify() {}
+    pub fn verify(&self, data: &[u8], signature: &[u8]) -> bool {
+        let signature = Signature::from_bytes(signature).unwrap();
+        PublicKey::from_bytes(&self.public_key)
+            .unwrap()
+            .verify::<Sha512>(data, &signature)
+            .is_ok()
+    }
 }
