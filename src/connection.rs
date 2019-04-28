@@ -1,7 +1,4 @@
-use crate::proto::{
-    ClientToServer::{self, *},
-    ServerToClient::{self, *},
-};
+use crate::proto::{ClientSays, ServerSays};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
@@ -38,10 +35,10 @@ impl<T: Stream> Connection<T> {
         other: Option<SigningPubKey>,
     ) -> Result<SecureConnection<T>, Error> {
         // Send request
-        await!(self.stream.send(UpgradeRequest("fts 1 req".to_string())))?;
-        // Get server public key
-        let server_id = match await!(self.stream.recv::<ServerToClient>())? {
-            UpgradeResponse(s, server_id) => {
+        await!(self.stream.send(ClientSays::Hello("fts 1 req".to_string())))?;
+        // Get server identity
+        let server_id = match await!(self.stream.recv::<ServerSays>())? {
+            ServerSays::Hello(s, server_id) => {
                 if s != "fts 1 res" {
                     return Err(Error::Logic);
                 }
@@ -68,11 +65,11 @@ impl<T: Stream> Connection<T> {
     /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(
         mut self,
-        accept_only: Option<Vec<SigningPubKey>>,
+        accept_only: Option<&[SigningPubKey]>,
     ) -> Result<SecureConnection<T>, Error> {
         // Get request
-        match await!(self.stream.recv::<ClientToServer>())? {
-            UpgradeRequest(s) => {
+        match await!(self.stream.recv::<ClientSays>())? {
+            ClientSays::Hello(s) => {
                 if s != "fts 1 req" {
                     return Err(Error::Logic);
                 }
@@ -81,8 +78,8 @@ impl<T: Stream> Connection<T> {
                 return Err(Error::Logic);
             }
         }
-        // Send our public key, unencrypted
-        await!(self.stream.send(UpgradeResponse(
+        // Send our identity
+        await!(self.stream.send(ServerSays::Hello(
             "fts 1 res".to_string(),
             self.id.get_partial()
         )))?;
