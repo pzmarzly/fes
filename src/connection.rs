@@ -37,8 +37,10 @@ impl<T: Stream> Connection<T> {
         mut self,
         other: Option<PartialIdentity>,
     ) -> Result<SecureConnection<T>, Error> {
+        // Send request
         await!(self.stream.send(UpgradeRequest("fts 1 req".to_string())))?;
-        match await!(self.stream.recv::<ServerToClient>())? {
+        // Get server public key
+        let server_id = match await!(self.stream.recv::<ServerToClient>())? {
             UpgradeResponse(s, server_id) => {
                 if s != "fts 1 res" {
                     return Err(Error::Logic);
@@ -48,14 +50,17 @@ impl<T: Stream> Connection<T> {
                         return Err(Error::Id);
                     }
                 }
-                return Ok(SecureConnection {
-                    id: self.id,
-                    other_id: server_id,
-                    stream: self.stream,
-                });
+                server_id
             }
             _ => return Err(Error::Logic),
-        }
+        };
+        // Send our public key, encrypted
+        // TODO:
+        Ok(SecureConnection {
+            id: self.id,
+            other_id: server_id,
+            stream: self.stream,
+        })
     }
 
     /// Treat other side of Stream as client, try to upgrade connection to encrypted one.
@@ -65,25 +70,29 @@ impl<T: Stream> Connection<T> {
         mut self,
         accept_only: Option<Vec<PartialIdentity>>,
     ) -> Result<SecureConnection<T>, Error> {
-        if let UpgradeRequest(s) = await!(self.stream.recv::<ClientToServer>())? {
-            if s == "fts 1 req" {
-                await!(self.stream.send(UpgradeResponse(
-                    "fts 1 res".to_string(),
-                    self.id.get_partial()
-                )))?;
-                // TODO: get client public key...
-                return Ok(SecureConnection {
-                    id: self.id,
-                    other_id: PartialIdentity {
-                        public_key: Vec::new(),
-                    },
-                    stream: self.stream,
-                });
-            } else {
+        // Get request
+        match await!(self.stream.recv::<ClientToServer>())? {
+            UpgradeRequest(s) => {
+                if s != "fts 1 req" {
+                    return Err(Error::Logic);
+                }
+            }
+            _ => {
                 return Err(Error::Logic);
             }
-        } else {
-            return Err(Error::Logic);
         }
+        // Send our public key, unencrypted
+        await!(self.stream.send(UpgradeResponse(
+            "fts 1 res".to_string(),
+            self.id.get_partial()
+        )))?;
+        // TODO: get client public key...
+        return Ok(SecureConnection {
+            id: self.id,
+            other_id: PartialIdentity {
+                public_key: Vec::new(),
+            },
+            stream: self.stream,
+        });
     }
 }
