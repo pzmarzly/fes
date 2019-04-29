@@ -1,7 +1,26 @@
-use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature};
+use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature as DSignature};
 use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use sha2::Sha512;
+
+use std::fmt;
+
+#[derive(Clone, Protocol)]
+pub struct Signature {
+    pub bytes: [u8; 64],
+}
+
+impl fmt::Debug for Signature {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        self.bytes[..].fmt(formatter)
+    }
+}
+
+impl PartialEq for Signature {
+    fn eq(&self, other: &Signature) -> bool {
+        self.bytes[..] == other.bytes[..]
+    }
+}
 
 /// Public key used to verify signatures
 #[derive(Debug, PartialEq, Clone, Protocol)]
@@ -25,12 +44,14 @@ impl SigningKeyPair {
             public_key: public.to_bytes(),
         }
     }
-    pub fn sign(&self, data: &[u8]) -> [u8; 64] {
+    pub fn sign(&self, data: &[u8]) -> Signature {
         let keypair = Keypair {
             secret: SecretKey::from_bytes(&self.private_key).unwrap(),
             public: PublicKey::from_bytes(&self.public_key).unwrap(),
         };
-        keypair.sign::<Sha512>(data).to_bytes()
+        Signature {
+            bytes: keypair.sign::<Sha512>(data).to_bytes(),
+        }
     }
     /// Clone `SigningKeyPair` public key into new `SigningPubKey`
     pub fn get_partial(&self) -> SigningPubKey {
@@ -42,7 +63,7 @@ impl SigningKeyPair {
 
 impl SigningPubKey {
     pub fn verify(&self, data: &[u8], signature: &[u8]) -> bool {
-        let signature = Signature::from_bytes(signature).unwrap();
+        let signature = DSignature::from_bytes(signature).unwrap();
         PublicKey::from_bytes(&self.public_key)
             .unwrap()
             .verify::<Sha512>(data, &signature)
