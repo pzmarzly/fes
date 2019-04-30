@@ -1,10 +1,10 @@
 use rand::rngs::OsRng;
 use rand::RngCore;
 
+use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
 use crate::proto::{ClientSays, ServerSays};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
-use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
 use crate::Error;
 
 /// Established and encrypted 1:1 connection
@@ -23,15 +23,15 @@ pub struct Connection<T: Stream> {
 }
 
 macro_rules! recv {
-    ($src:ident) => (
+    ($src:ident) => {
         await!($src.stream.recv())?
-    )
+    };
 }
 
 macro_rules! send {
-    ($src:ident, $expression:expr) => (
+    ($src:ident, $expression:expr) => {
         await!($src.stream.send($expression))?
-    )
+    };
 }
 
 impl<T: Stream> Connection<T> {
@@ -92,16 +92,20 @@ impl<T: Stream> Connection<T> {
                     return Err(Error::Logic);
                 }
             }
-            _ => {
-                return Err(Error::Logic);
-            }
+            _ => return Err(Error::Logic),
         }
 
-        send!(self, ServerSays::Hello(
-            "fts 1 res".to_string(),
-            self.id.get_public()
-        ));
+        send!(
+            self,
+            ServerSays::Hello("fts 1 res".to_string(), self.id.get_public())
+        );
 
+        let (client_key, nonce) = match recv!(self) {
+            ClientSays::DH(pub_key, nonce) => (pub_key, nonce),
+            _ => return Err(Error::Logic),
+        };
+
+        let keys = EncryptionKeyPair::generate();
 
         return Ok(SecureConnection {
             id: self.id,

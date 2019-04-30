@@ -1,7 +1,7 @@
 use protocol_derive::Protocol;
 
 use crate::dh::EncryptionPubKey;
-use crate::signature::{SigningPubKey, Signature};
+use crate::signature::{Signature, SigningPubKey};
 
 #[derive(Debug, PartialEq, Protocol)]
 pub enum ClientSays {
@@ -10,7 +10,10 @@ pub enum ClientSays {
 }
 
 #[derive(Debug, PartialEq, Protocol)]
+pub struct UnsignedDH(EncryptionPubKey, u32);
+
+#[derive(Debug, PartialEq, Protocol)]
 pub enum ServerSays {
     Hello(String, SigningPubKey),
-    DH(EncryptionPubKey, Signature),
+    DH(UnsignedDH, Signature),
 }
