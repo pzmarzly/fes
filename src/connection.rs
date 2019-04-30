@@ -78,7 +78,7 @@ impl<T: Stream> Connection<T> {
                     return Err(Error::Logic);
                 }
                 unsigned.0
-            },
+            }
             _ => return Err(Error::Logic),
         };
 
