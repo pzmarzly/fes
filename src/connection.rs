@@ -2,7 +2,7 @@ use rand::rngs::OsRng;
 use rand::RngCore;
 
 use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
-use crate::proto::{ClientSays, ServerSays};
+use crate::proto::{ClientSays, ServerSays, UnsignedDH};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
@@ -70,7 +70,7 @@ impl<T: Stream> Connection<T> {
         let keys = EncryptionKeyPair::generate();
         let mut rng = OsRng::new().unwrap();
         let nonce = rng.next_u32();
-        send!(self, ClientSays::DH(keys.get_public(), nonce));
+        send!(self, ClientSays::DH(UnsignedDH(keys.get_public(), nonce)));
 
         Ok(SecureConnection {
             id: self.id,
@@ -101,7 +101,7 @@ impl<T: Stream> Connection<T> {
         );
 
         let (client_key, nonce) = match recv!(self) {
-            ClientSays::DH(pub_key, nonce) => (pub_key, nonce),
+            ClientSays::DH(UnsignedDH(pub_key, nonce)) => (pub_key, nonce),
             _ => return Err(Error::Logic),
         };
 

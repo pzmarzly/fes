@@ -1,6 +1,6 @@
 use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature as DSignature};
-use protocol_derive::Protocol;
 use protocol::Parcel;
+use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use sha2::Sha512;
 
