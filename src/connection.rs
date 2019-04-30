@@ -83,12 +83,13 @@ impl<T: Stream> Connection<T> {
         };
 
         let shared = keys.dh(&server_key);
-
-        Ok(SecureConnection {
+        let secure = SecureConnection {
             id: self.id,
             other_id: server_id,
             stream: self.stream,
-        })
+        };
+
+        Ok(secure)
     }
 
     /// Treat other side of Stream as client, try to upgrade connection to encrypted one.
