@@ -23,8 +23,8 @@ pub struct Connection<T: Stream> {
 }
 
 macro_rules! recv {
-    ($src:ident, $type:ty) => (
-        await!($src.stream.recv::<$type>())?
+    ($src:ident) => (
+        await!($src.stream.recv())?
     )
 }
 
@@ -52,7 +52,7 @@ impl<T: Stream> Connection<T> {
     ) -> Result<SecureConnection<T>, Error> {
         send!(self, ClientSays::Hello("fts 1 req".to_string()));
 
-        let server_id = match recv!(self, ServerSays) {
+        let server_id = match recv!(self) {
             ServerSays::Hello(s, server_id) => {
                 if s != "fts 1 res" {
                     return Err(Error::Logic);
@@ -86,7 +86,7 @@ impl<T: Stream> Connection<T> {
         mut self,
         accept_only: Option<&[SigningPubKey]>,
     ) -> Result<SecureConnection<T>, Error> {
-        match recv!(self, ClientSays) {
+        match recv!(self) {
             ClientSays::Hello(s) => {
                 if s != "fts 1 req" {
                     return Err(Error::Logic);
