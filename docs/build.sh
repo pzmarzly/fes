@@ -4,6 +4,6 @@ if [ -z "$PATH_TO_ROBOTO" ]; then
 fi
 
 diag() {
-    seqdiag --no-transparency -f $PATH_TO_ROBOTO -a $1
+    seqdiag --no-transparency -f $PATH_TO_ROBOTO -a $@
 }
-diag connection.diag
+diag connection.diag $@
