@@ -7,20 +7,22 @@ use sha2::Sha512;
 use crate::util::ParcelExt;
 
 use std::fmt;
+use std::marker::PhantomData;
 
 #[derive(Clone, Protocol)]
-pub struct Signature {
+pub struct Signature<T> {
     pub bytes: [u8; 64],
+    pub typed: PhantomData<T>,
 }
 
-impl fmt::Debug for Signature {
+impl<T> fmt::Debug for Signature<T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         self.bytes[..].fmt(formatter)
     }
 }
 
-impl PartialEq for Signature {
-    fn eq(&self, other: &Signature) -> bool {
+impl<T> PartialEq for Signature<T> {
+    fn eq(&self, other: &Signature<T>) -> bool {
         self.bytes[..] == other.bytes[..]
     }
 }
@@ -47,7 +49,7 @@ impl SigningKeyPair {
             public_key: public.to_bytes(),
         }
     }
-    pub fn sign(&self, message: &impl Parcel) -> Signature {
+    pub fn sign<T: Parcel>(&self, message: &T) -> Signature<T> {
         let data = message.to_bytes();
         let keypair = Keypair {
             secret: SecretKey::from_bytes(&self.private_key).unwrap(),
@@ -55,6 +57,7 @@ impl SigningKeyPair {
         };
         Signature {
             bytes: keypair.sign::<Sha512>(&data).to_bytes(),
+            typed: PhantomData,
         }
     }
     /// Clone `SigningKeyPair` public key into new `SigningPubKey`

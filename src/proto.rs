@@ -15,5 +15,5 @@ pub struct UnsignedDH(EncryptionPubKey, u32);
 #[derive(Debug, PartialEq, Protocol)]
 pub enum ServerSays {
     Hello(String, SigningPubKey),
-    DH(UnsignedDH, Signature),
+    DH(UnsignedDH, Signature<UnsignedDH>),
 }
