@@ -44,14 +44,14 @@ impl<T: Stream> Connection<T> {
                 }
                 if let Some(expected) = other {
                     if expected != server_id {
-                        return Err(Error::Id);
+                        return Err(Error::Rejected);
                     }
                 }
                 server_id
             }
             _ => return Err(Error::Logic),
         };
-        // Send our public key, encrypted
+        // Generate and send ephemeral key, sign it to prove our identity
         // TODO:
         Ok(SecureConnection {
             id: self.id,

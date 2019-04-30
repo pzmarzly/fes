@@ -17,8 +17,12 @@ pub enum Error {
     Io(futures::io::Error),
     /// Error originating in protocol crate
     Protocol(protocol::Error),
-    /// Other side sent correct packet, but it was unexpected in current content
+    /// Other side is speaking a different protocol or
+    /// a different version of fts.
+    LibVersion,
+    /// Other side sent packet that was parsed correctly,
+    /// but it was unexpected at this moment
     Logic,
-    /// Other side was not allowed to connect (invalid SigningPubKey)
-    Id,
+    /// Other side was not allowed to connect (invalid identity)
+    Rejected,
 }

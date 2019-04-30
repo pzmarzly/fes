@@ -6,7 +6,7 @@ use crate::signature::{SigningPubKey, Signature};
 #[derive(Debug, PartialEq, Protocol)]
 pub enum ClientSays {
     Hello(String),
-    DH(EncryptionPubKey, Signature), // new key, signature
+    DH(EncryptionPubKey),
 }
 
 #[derive(Debug, PartialEq, Protocol)]

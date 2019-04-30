@@ -1,0 +1,12 @@
+seqdiag {
+    client -> server [label = "Hello (protocol version)"];
+    ... ID = public signature key ...
+    client <- server [label = "Hello (protocol version, ID)"];
+    === ephemeral (temporary) encryption keys are generated ===
+    client -> server [label = "DH (client key, nonce )"];
+    client <- server [label = "DH (server key, nonce) + Signature"];
+    === encrypted connection established ===
+    client -> server [label = "Auth (ID, shared secret) + Signature"];
+    client <- server [label = "Accepted / Rejected"];
+    === secure connection established ===
+}
