@@ -39,7 +39,7 @@ impl EncryptionKeyPair {
         bytes_c
     }
     /// Clone `EncryptionKeyPair` public key into new `EncryptionPubKey`
-    pub fn get_public(&self) -> EncryptionPubKey {
+    pub fn public(&self) -> EncryptionPubKey {
         let bytes = self.public_key.as_bytes();
 
         let mut bytes_c = [0u8; 32];

@@ -70,7 +70,7 @@ impl<T: Stream> Connection<T> {
         let keys = EncryptionKeyPair::generate();
         let mut rng = OsRng::new().unwrap();
         let nonce = rng.next_u32();
-        send!(self, ClientSays::DH(UnsignedDH(keys.get_public(), nonce)));
+        send!(self, ClientSays::DH(UnsignedDH(keys.public(), nonce)));
 
         Ok(SecureConnection {
             id: self.id,
@@ -97,7 +97,7 @@ impl<T: Stream> Connection<T> {
 
         send!(
             self,
-            ServerSays::Hello("fts 1 res".to_string(), self.id.get_public())
+            ServerSays::Hello("fts 1 res".to_string(), self.id.public())
         );
 
         let (client_key, nonce) = match recv!(self) {
@@ -106,6 +106,9 @@ impl<T: Stream> Connection<T> {
         };
 
         let keys = EncryptionKeyPair::generate();
+        let unsigned = UnsignedDH(keys.public(), nonce);
+        let signature = self.id.sign(&unsigned);
+        send!(self, ServerSays::DH(unsigned, signature));
 
         return Ok(SecureConnection {
             id: self.id,

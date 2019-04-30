@@ -61,7 +61,7 @@ impl SigningKeyPair {
         }
     }
     /// Clone `SigningKeyPair` public key into new `SigningPubKey`
-    pub fn get_public(&self) -> SigningPubKey {
+    pub fn public(&self) -> SigningPubKey {
         SigningPubKey {
             public_key: self.public_key.clone(),
         }
