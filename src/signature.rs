@@ -37,7 +37,7 @@ pub struct SigningKeyPair {
 
 impl SigningKeyPair {
     pub fn generate() -> Self {
-        let mut rng: OsRng = OsRng::new().unwrap();
+        let mut rng = OsRng::new().unwrap();
         let Keypair { secret, public } = Keypair::generate::<Sha512, _>(&mut rng);
         Self {
             private_key: secret.to_bytes(),
@@ -54,7 +54,7 @@ impl SigningKeyPair {
         }
     }
     /// Clone `SigningKeyPair` public key into new `SigningPubKey`
-    pub fn get_partial(&self) -> SigningPubKey {
+    pub fn get_public(&self) -> SigningPubKey {
         SigningPubKey {
             public_key: self.public_key.clone(),
         }

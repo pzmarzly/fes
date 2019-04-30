@@ -18,7 +18,7 @@ pub struct EncryptionKeyPair {
 
 impl EncryptionKeyPair {
     pub fn generate() -> Self {
-        let mut rng: OsRng = OsRng::new().unwrap();
+        let mut rng = OsRng::new().unwrap();
         let secret = StaticSecret::new(&mut rng);
         let public = PublicKey::from(&secret);
         Self {
@@ -39,7 +39,7 @@ impl EncryptionKeyPair {
         bytes_c
     }
     /// Clone `EncryptionKeyPair` public key into new `EncryptionPubKey`
-    pub fn get_partial(&self) -> EncryptionPubKey {
+    pub fn get_public(&self) -> EncryptionPubKey {
         let bytes = self.public_key.as_bytes();
 
         let mut bytes_c = [0u8; 32];

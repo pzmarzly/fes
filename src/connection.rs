@@ -1,6 +1,10 @@
+use rand::rngs::OsRng;
+use rand::RngCore;
+
 use crate::proto::{ClientSays, ServerSays};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
+use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
 use crate::Error;
 
 /// Established and encrypted 1:1 connection
@@ -16,6 +20,18 @@ pub struct SecureConnection<T: Stream> {
 pub struct Connection<T: Stream> {
     id: SigningKeyPair,
     stream: StreamWrapper<T>,
+}
+
+macro_rules! recv {
+    ($src:ident, $type:ty) => (
+        await!($src.stream.recv::<$type>())?
+    )
+}
+
+macro_rules! send {
+    ($src:ident, $expression:expr) => (
+        await!($src.stream.send($expression))?
+    )
 }
 
 impl<T: Stream> Connection<T> {
@@ -34,10 +50,9 @@ impl<T: Stream> Connection<T> {
         mut self,
         other: Option<SigningPubKey>,
     ) -> Result<SecureConnection<T>, Error> {
-        // Send request
-        await!(self.stream.send(ClientSays::Hello("fts 1 req".to_string())))?;
-        // Get server identity
-        let server_id = match await!(self.stream.recv::<ServerSays>())? {
+        send!(self, ClientSays::Hello("fts 1 req".to_string()));
+
+        let server_id = match recv!(self, ServerSays) {
             ServerSays::Hello(s, server_id) => {
                 if s != "fts 1 res" {
                     return Err(Error::Logic);
@@ -51,8 +66,12 @@ impl<T: Stream> Connection<T> {
             }
             _ => return Err(Error::Logic),
         };
-        // Generate and send ephemeral key, sign it to prove our identity
-        // TODO:
+
+        let keys = EncryptionKeyPair::generate();
+        let mut rng = OsRng::new().unwrap();
+        let nonce = rng.next_u32();
+        send!(self, ClientSays::DH(keys.get_public(), nonce));
+
         Ok(SecureConnection {
             id: self.id,
             other_id: server_id,
@@ -67,8 +86,7 @@ impl<T: Stream> Connection<T> {
         mut self,
         accept_only: Option<&[SigningPubKey]>,
     ) -> Result<SecureConnection<T>, Error> {
-        // Get request
-        match await!(self.stream.recv::<ClientSays>())? {
+        match recv!(self, ClientSays) {
             ClientSays::Hello(s) => {
                 if s != "fts 1 req" {
                     return Err(Error::Logic);
@@ -78,12 +96,13 @@ impl<T: Stream> Connection<T> {
                 return Err(Error::Logic);
             }
         }
-        // Send our identity
-        await!(self.stream.send(ServerSays::Hello(
+
+        send!(self, ServerSays::Hello(
             "fts 1 res".to_string(),
-            self.id.get_partial()
-        )))?;
-        // TODO: get client public key...
+            self.id.get_public()
+        ));
+
+
         return Ok(SecureConnection {
             id: self.id,
             other_id: SigningPubKey {
