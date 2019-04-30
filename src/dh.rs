@@ -26,9 +26,9 @@ impl EncryptionKeyPair {
             public_key: public,
         }
     }
-    pub fn dh(&self, other_public_key: &[u8]) -> [u8; 32] {
+    pub fn dh(&self, other_public_key: &EncryptionPubKey) -> [u8; 32] {
         let mut other_public_key_c = [0u8; 32];
-        other_public_key_c.copy_from_slice(&other_public_key[..]);
+        other_public_key_c.copy_from_slice(&other_public_key.public_key[..]);
 
         let other = PublicKey::from(other_public_key_c);
         let shared = self.private_key.diffie_hellman(&other);

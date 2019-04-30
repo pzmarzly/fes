@@ -72,6 +72,18 @@ impl<T: Stream> Connection<T> {
         let nonce = rng.next_u32();
         send!(self, ClientSays::DH(UnsignedDH(keys.public(), nonce)));
 
+        let server_key = match recv!(self) {
+            ServerSays::DH(unsigned, signature) => {
+                if unsigned.1 != nonce || !server_id.verify(&unsigned, &signature) {
+                    return Err(Error::Logic);
+                }
+                unsigned.0
+            },
+            _ => return Err(Error::Logic),
+        };
+
+        let shared = keys.dh(&server_key);
+
         Ok(SecureConnection {
             id: self.id,
             other_id: server_id,

@@ -69,11 +69,14 @@ impl SigningKeyPair {
 }
 
 impl SigningPubKey {
-    pub fn verify(&self, data: &[u8], signature: &[u8]) -> bool {
-        let signature = DSignature::from_bytes(signature).unwrap();
+    pub fn verify<T: Parcel>(&self, message: &T, signature: &Signature<T>) -> bool {
+        let data = message.to_bytes();
+        let signature = signature.to_bytes();
+
+        let signature = DSignature::from_bytes(&signature).unwrap();
         PublicKey::from_bytes(&self.public_key)
             .unwrap()
-            .verify::<Sha512>(data, &signature)
+            .verify::<Sha512>(&data, &signature)
             .is_ok()
     }
 }
