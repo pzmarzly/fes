@@ -1,7 +1,10 @@
 use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature as DSignature};
 use protocol_derive::Protocol;
+use protocol::Parcel;
 use rand::rngs::OsRng;
 use sha2::Sha512;
+
+use crate::util::ParcelExt;
 
 use std::fmt;
 
@@ -44,13 +47,14 @@ impl SigningKeyPair {
             public_key: public.to_bytes(),
         }
     }
-    pub fn sign(&self, data: &[u8]) -> Signature {
+    pub fn sign(&self, message: &impl Parcel) -> Signature {
+        let data = message.to_bytes();
         let keypair = Keypair {
             secret: SecretKey::from_bytes(&self.private_key).unwrap(),
             public: PublicKey::from_bytes(&self.public_key).unwrap(),
         };
         Signature {
-            bytes: keypair.sign::<Sha512>(data).to_bytes(),
+            bytes: keypair.sign::<Sha512>(&data).to_bytes(),
         }
     }
     /// Clone `SigningKeyPair` public key into new `SigningPubKey`
