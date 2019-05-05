@@ -1,4 +1,6 @@
 use protocol_derive::Protocol;
+use rand::rngs::OsRng;
+use rand::RngCore;
 
 use crate::dh::EncryptionPubKey;
 use crate::signature::{Signature, SigningPubKey};
@@ -18,8 +20,18 @@ impl ProtocolVersion {
 #[derive(Debug, PartialEq, Protocol, Clone, Copy)]
 pub struct ProtocolReply(u64);
 
+#[derive(Debug, PartialEq, Protocol, Clone, Copy)]
+pub struct Nonce(pub u64);
+
+impl Nonce {
+    pub fn generate() -> Self {
+        let mut rng = OsRng::new().unwrap();
+        Self(rng.next_u64())
+    }
+}
+
 #[derive(Debug, PartialEq, Protocol)]
-pub struct UnsignedDH(pub EncryptionPubKey, pub u32);
+pub struct UnsignedDH(pub EncryptionPubKey, pub Nonce);
 
 #[derive(Debug, PartialEq, Protocol)]
 #[protocol(discriminant = "integer")]

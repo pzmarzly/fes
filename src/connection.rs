@@ -1,8 +1,5 @@
-use rand::rngs::OsRng;
-use rand::RngCore;
-
 use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
-use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion};
+use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, Nonce};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
@@ -46,6 +43,7 @@ impl<T: Stream> Connection<T> {
     ///
     /// By specifying `other`, you can make sure you are connecting to server you intended
     /// (think: certificate pinning).
+    // TODO: Error::Insecure when both side don't filter other's identity
     pub async fn client_side_upgrade(
         mut self,
         other_id: Option<SigningPubKey>,
@@ -69,8 +67,7 @@ impl<T: Stream> Connection<T> {
         };
 
         let keys = EncryptionKeyPair::generate();
-        let mut rng = OsRng::new().unwrap();
-        let nonce = rng.next_u32();
+        let nonce = Nonce::generate();
         send!(self, ClientSays::DH(UnsignedDH(keys.public(), nonce)));
 
         let server_key = match recv!(self) {
