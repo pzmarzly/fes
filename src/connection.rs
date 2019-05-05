@@ -1,6 +1,6 @@
 use crate::crypto::dh::{DhKeyPair, DhPubKey};
-use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, Nonce};
 use crate::crypto::signature::{SigningKeyPair, SigningPubKey};
+use crate::proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH};
 use crate::util::{AsyncRW, AsyncRWWrapper};
 use crate::Error;
 
@@ -47,7 +47,7 @@ impl<T: AsyncRW> Connection<T> {
     pub async fn client_side_upgrade(
         mut self,
         other_id: Option<SigningPubKey>,
-        proto_version: ProtocolVersion
+        proto_version: ProtocolVersion,
     ) -> Result<SecureConnection<T>, Error> {
         send!(self, ClientSays::Hello(proto_version));
 
@@ -57,9 +57,9 @@ impl<T: AsyncRW> Connection<T> {
                     return Err(Error::Logic);
                 }
                 if let Some(expected_id) = other_id {
-                        if expected_id != real_id {
-                            return Err(Error::Rejected);
-                        }
+                    if expected_id != real_id {
+                        return Err(Error::Rejected);
+                    }
                 }
                 real_id
             }
