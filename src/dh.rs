@@ -3,20 +3,20 @@ use rand::rngs::OsRng;
 use x25519_dalek::PublicKey;
 use x25519_dalek::StaticSecret;
 
-/// Public key used for encryption
+/// Public key used for ephemeral key exchange
 #[derive(Debug, PartialEq, Clone, Protocol)]
-pub struct EncryptionPubKey {
+pub struct DhPubKey {
     pub public_key: [u8; 32],
 }
 
-/// Pair of public and private keys - used for encryption
+/// Pair of public and private keys - used for ephemeral key exchange
 #[derive(Clone)]
-pub struct EncryptionKeyPair {
+pub struct DhKeyPair {
     pub private_key: StaticSecret,
     pub public_key: PublicKey,
 }
 
-impl EncryptionKeyPair {
+impl DhKeyPair {
     pub fn generate() -> Self {
         let mut rng = OsRng::new().unwrap();
         let secret = StaticSecret::new(&mut rng);
@@ -26,7 +26,7 @@ impl EncryptionKeyPair {
             public_key: public,
         }
     }
-    pub fn dh(&self, other_public_key: &EncryptionPubKey) -> [u8; 32] {
+    pub fn dh(&self, other_public_key: &DhPubKey) -> [u8; 32] {
         let mut other_public_key_c = [0u8; 32];
         other_public_key_c.copy_from_slice(&other_public_key.public_key[..]);
 
@@ -38,13 +38,13 @@ impl EncryptionKeyPair {
         bytes_c.copy_from_slice(&bytes[..]);
         bytes_c
     }
-    /// Clone `EncryptionKeyPair` public key into new `EncryptionPubKey`
-    pub fn public(&self) -> EncryptionPubKey {
+    /// Clone `DhKeyPair` public key into new `DhPubKey`
+    pub fn public(&self) -> DhPubKey {
         let bytes = self.public_key.as_bytes();
 
         let mut bytes_c = [0u8; 32];
         bytes_c.copy_from_slice(&bytes[..]);
-        EncryptionPubKey {
+        DhPubKey {
             public_key: bytes_c,
         }
     }

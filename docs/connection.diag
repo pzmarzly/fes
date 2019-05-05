@@ -1,5 +1,5 @@
 seqdiag {
-    ... ID = public signature key \n Enc = public encryption key \n Shared = derived encryption key ...
+    ... ID = public signature key \n DHK = public DH key \n Shared = derived encryption key ...
     client -> server [label = "Hello(ProtocolVersion)"];
     client <- server [label = "Hello(ProtocolReply, ID_s)"];
     === ephemeral (temporary) encryption keys are generated ===

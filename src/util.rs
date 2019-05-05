@@ -20,6 +20,7 @@ impl<T: Parcel> ParcelExt<T> for T {
 }
 
 /// Alias for `AsyncReadExt + AsyncWriteExt`. See [romio] for example network implementation
+///
 /// [romio]: https://crates.io/crates/romio
 pub trait Stream: AsyncReadExt + AsyncWriteExt + Unpin {}
 impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Stream for T {}

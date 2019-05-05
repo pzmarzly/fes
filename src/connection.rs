@@ -1,4 +1,4 @@
-use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
+use crate::dh::{DhKeyPair, DhPubKey};
 use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, Nonce};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};

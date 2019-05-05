@@ -2,7 +2,7 @@ use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use rand::RngCore;
 
-use crate::dh::EncryptionPubKey;
+use crate::dh::DhPubKey;
 use crate::signature::{Signature, SigningPubKey};
 
 /// Message signaling supported protocol version.
@@ -31,7 +31,7 @@ impl Nonce {
 }
 
 #[derive(Debug, PartialEq, Protocol)]
-pub struct UnsignedDH(pub EncryptionPubKey, pub Nonce);
+pub struct UnsignedDH(pub DhPubKey, pub Nonce);
 
 #[derive(Debug, PartialEq, Protocol)]
 #[protocol(discriminant = "integer")]
