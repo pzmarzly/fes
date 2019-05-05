@@ -1,8 +1,12 @@
-use crate::crypto::dh::{DhKeyPair, DhPubKey};
-use crate::crypto::signature::{SigningKeyPair, SigningPubKey};
-use crate::proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH};
-use crate::util::{AsyncRW, AsyncRWWrapper};
-use crate::Error;
+use crate::{
+    crypto::{
+        dh::{DhKeyPair, DhPubKey},
+        signature::{SigningKeyPair, SigningPubKey},
+    },
+    proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH},
+    util::{AsyncRW, AsyncRWWrapper},
+    Error,
+};
 
 /// Established and encrypted 1:1 connection
 #[derive(Debug)]

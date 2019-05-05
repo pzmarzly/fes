@@ -1,4 +1,6 @@
 pub use protocol_derive::Protocol;
 
-pub use crate::crypto::signature::{SigningKeyPair, SigningPubKey};
-pub use crate::util::ParcelExt;
+pub use crate::{
+    crypto::signature::{SigningKeyPair, SigningPubKey},
+    util::ParcelExt,
+};

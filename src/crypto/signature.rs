@@ -6,8 +6,7 @@ use sha2::Sha512;
 
 use crate::util::ParcelExt;
 
-use std::fmt;
-use std::marker::PhantomData;
+use std::{fmt, marker::PhantomData};
 
 #[derive(Clone, Protocol)]
 pub struct Signature<T> {

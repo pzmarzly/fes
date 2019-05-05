@@ -1,7 +1,6 @@
 use protocol_derive::Protocol;
 use rand::rngs::OsRng;
-use x25519_dalek::PublicKey;
-use x25519_dalek::StaticSecret;
+use x25519_dalek::{PublicKey, StaticSecret};
 
 /// Public key used for ephemeral key exchange
 #[derive(Debug, PartialEq, Clone, Protocol)]
