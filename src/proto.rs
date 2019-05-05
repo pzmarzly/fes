@@ -8,7 +8,7 @@ use crate::crypto::{
 
 /// Message signaling supported protocol version.
 ///
-/// Different values are used in case of connecting to an echo server.
+/// Different type is sent back in case of connecting to an echo server.
 #[derive(Debug, PartialEq, Protocol, Clone, Copy)]
 pub struct ProtocolVersion(pub u64);
 
