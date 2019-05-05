@@ -1,22 +1,22 @@
 use crate::dh::{DhKeyPair, DhPubKey};
 use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, Nonce};
 use crate::signature::{SigningKeyPair, SigningPubKey};
-use crate::util::{Stream, StreamWrapper};
+use crate::util::{AsyncRW, AsyncRWWrapper};
 use crate::Error;
 
 /// Established and encrypted 1:1 connection
 #[derive(Debug)]
-pub struct SecureConnection<T: Stream> {
+pub struct SecureConnection<T: AsyncRW> {
     id: SigningKeyPair,
     other_id: SigningPubKey,
-    stream: StreamWrapper<T>,
+    stream: AsyncRWWrapper<T>,
 }
 
 /// Established but unencrypted 1:1 connection
 #[derive(Debug)]
-pub struct Connection<T: Stream> {
+pub struct Connection<T: AsyncRW> {
     id: SigningKeyPair,
-    stream: StreamWrapper<T>,
+    stream: AsyncRWWrapper<T>,
 }
 
 macro_rules! recv {
@@ -31,15 +31,15 @@ macro_rules! send {
     };
 }
 
-impl<T: Stream> Connection<T> {
+impl<T: AsyncRW> Connection<T> {
     pub fn new(id: SigningKeyPair, stream: T) -> Self {
         Self {
             id,
-            stream: StreamWrapper::new(stream),
+            stream: AsyncRWWrapper::new(stream),
         }
     }
 
-    /// Treat other side of Stream as server, try to upgrade connection to encrypted one.
+    /// Treat other side of AsyncRW as server, try to upgrade connection to encrypted one.
     ///
     /// By specifying `other`, you can make sure you are connecting to server you intended
     /// (think: certificate pinning).
@@ -90,7 +90,7 @@ impl<T: Stream> Connection<T> {
         Ok(secure)
     }
 
-    /// Treat other side of Stream as client, try to upgrade connection to encrypted one.
+    /// Treat other side of AsyncRW as client, try to upgrade connection to encrypted one.
     ///
     /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(
