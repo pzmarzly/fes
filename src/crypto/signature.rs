@@ -4,7 +4,7 @@ use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use sha2::Sha512;
 
-use crate::util::ParcelExt;
+use crate::ParcelExt;
 
 use std::{fmt, marker::PhantomData};
 

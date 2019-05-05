@@ -7,8 +7,7 @@ use crate::{
         signature::{SigningKeyPair, SigningPubKey},
     },
     proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH},
-    util::{AsyncRW, AsyncRWWrapper},
-    Error,
+    AsyncRW, AsyncRWWrapper, Error,
 };
 
 /// Established and encrypted 1:1 connection
