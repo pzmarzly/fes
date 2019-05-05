@@ -1,3 +1,6 @@
+//! Main module
+// TODO: merge with lib.rs
+
 use crate::{
     crypto::{
         dh::{DhKeyPair, DhPubKey},

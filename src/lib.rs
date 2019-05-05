@@ -2,7 +2,6 @@
 
 pub mod connection;
 pub mod crypto;
-pub mod prelude;
 pub mod util;
 
 mod proto;

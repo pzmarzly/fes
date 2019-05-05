@@ -1,3 +1,6 @@
+//! Utilities
+// TODO: merge with lib.rs
+
 use futures::io::{AsyncReadExt, AsyncWriteExt};
 use protocol::{Parcel, Settings};
 
