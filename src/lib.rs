@@ -23,6 +23,6 @@ pub enum Error {
     /// Other side sent packet that was parsed correctly,
     /// but it was unexpected at this moment
     Logic,
-    /// Other side was not allowed to connect (invalid identity)
+    /// Other side did not allow us to connect or had invalid identity
     Rejected,
 }
