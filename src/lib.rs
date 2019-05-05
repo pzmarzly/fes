@@ -85,14 +85,24 @@ impl<T: AsyncRW> UnencryptedAsyncRW<T> {
 
         Ok(P::from_bytes(&data)?)
     }
+
+    fn into_encrypted(self) -> EncryptedAsyncRW<T> {
+        EncryptedAsyncRW(self.0)
+    }
 }
+
+/// AsyncRW wrapper - sends and parses encrypted Parcels and their size
+#[derive(Debug, PartialEq)]
+pub(crate) struct EncryptedAsyncRW<T: AsyncRW>(pub T);
+
+impl<T: AsyncRW> EncryptedAsyncRW<T> {}
 
 /// Established and encrypted 1:1 connection
 #[derive(Debug)]
 pub struct SecureConnection<T: AsyncRW> {
     id: SigningKeyPair,
     other_id: SigningPubKey,
-    stream: UnencryptedAsyncRW<T>,
+    stream: EncryptedAsyncRW<T>,
 }
 
 /// Established but unencrypted 1:1 connection
@@ -167,7 +177,7 @@ impl<T: AsyncRW> Connection<T> {
         let secure = SecureConnection {
             id: self.id,
             other_id: server_id,
-            stream: self.stream,
+            stream: self.stream.into_encrypted(),
         };
 
         Ok(secure)
@@ -210,7 +220,7 @@ impl<T: AsyncRW> Connection<T> {
             other_id: SigningPubKey {
                 public_key: [0; 32],
             },
-            stream: self.stream,
+            stream: self.stream.into_encrypted(),
         });
     }
 }
