@@ -2,7 +2,7 @@ use rand::rngs::OsRng;
 use rand::RngCore;
 
 use crate::dh::{EncryptionKeyPair, EncryptionPubKey};
-use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, ProtocolReply};
+use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion};
 use crate::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{Stream, StreamWrapper};
 use crate::Error;
@@ -11,7 +11,7 @@ use crate::Error;
 #[derive(Debug)]
 pub struct SecureConnection<T: Stream> {
     id: SigningKeyPair,
-    other_id: Option<SigningPubKey>,
+    other_id: SigningPubKey,
     stream: StreamWrapper<T>,
 }
 
@@ -48,26 +48,22 @@ impl<T: Stream> Connection<T> {
     /// (think: certificate pinning).
     pub async fn client_side_upgrade(
         mut self,
-        other: Option<SigningPubKey>,
+        other_id: Option<SigningPubKey>,
         proto_version: ProtocolVersion
     ) -> Result<SecureConnection<T>, Error> {
         send!(self, ClientSays::Hello(proto_version));
 
         let server_id = match recv!(self) {
-            ServerSays::Hello(p, server_id) => {
+            ServerSays::Hello(p, real_id) => {
                 if p != proto_version.reply() {
                     return Err(Error::Logic);
                 }
-                if let Some(expected) = other {
-                    if let Some(real) = server_id {
-                        if expected != real {
+                if let Some(expected_id) = other_id {
+                        if expected_id != real_id {
                             return Err(Error::Rejected);
                         }
-                    } else {
-                        return Err(Error::Rejected);
-                    }
                 }
-                server_id
+                real_id
             }
             _ => return Err(Error::Logic),
         };
@@ -90,7 +86,7 @@ impl<T: Stream> Connection<T> {
         let shared = keys.dh(&server_key);
         let secure = SecureConnection {
             id: self.id,
-            other_id: Some(server_id),
+            other_id: server_id,
             stream: self.stream,
         };
 
@@ -116,7 +112,7 @@ impl<T: Stream> Connection<T> {
 
         send!(
             self,
-            ServerSays::Hello(proto_version.reply(), Some(self.id.public()))
+            ServerSays::Hello(proto_version.reply(), self.id.public())
         );
 
         let (client_key, nonce) = match recv!(self) {
@@ -131,9 +127,9 @@ impl<T: Stream> Connection<T> {
 
         return Ok(SecureConnection {
             id: self.id,
-            other_id: Some(SigningPubKey {
+            other_id: SigningPubKey {
                 public_key: [0; 32],
-            }),
+            },
             stream: self.stream,
         });
     }

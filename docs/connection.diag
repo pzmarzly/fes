@@ -1,12 +1,12 @@
 seqdiag {
-    client -> server [label = "Hello (ProtocolVersion)"];
-    ... ID = public signature key \n enum WantsID { Yes, No } ...
-    client <- server [label = "Hello (ProtocolReply, Option<ID>, WantsID)"];
+    client -> server [label = "Hello(ProtocolVersion)"];
+    ... ID = public signature key ...
+    client <- server [label = "Hello(ProtocolReply, ID)"];
     === ephemeral (temporary) encryption keys are generated ===
-    client -> server [label = "DH (client key, nonce)"];
-    client <- server [label = "DH (server key, nonce) + Signature"];
+    client -> server [label = "DH(client key, nonce)"];
+    client <- server [label = "DH(server key, nonce) + Signature"];
     === encrypted connection established ===
-    client -> server [label = "Auth (Option<ID>, shared secret) + Signature"];
+    client -> server [label = "Auth(ID, shared secret) + Signature"];
     client <- server [label = "Accepted / Rejected"];
     === secure connection established ===
 }
