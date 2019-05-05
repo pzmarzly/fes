@@ -54,9 +54,9 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> AsyncRW for T {}
 
 /// Low level AsyncRW wrapper - sends and parses unencrypted Parcels and their size
 #[derive(Debug, PartialEq)]
-pub(crate) struct AsyncRWWrapper<T: AsyncRW>(pub T);
+pub(crate) struct UnencryptedAsyncRW<T: AsyncRW>(pub T);
 
-impl<T: AsyncRW> AsyncRWWrapper<T> {
+impl<T: AsyncRW> UnencryptedAsyncRW<T> {
     pub fn new(async_rw: T) -> Self {
         Self(async_rw)
     }

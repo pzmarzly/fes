@@ -7,7 +7,7 @@ use crate::{
         signature::{SigningKeyPair, SigningPubKey},
     },
     proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH},
-    AsyncRW, AsyncRWWrapper, Error,
+    AsyncRW, UnencryptedAsyncRW, Error,
 };
 
 /// Established and encrypted 1:1 connection
@@ -15,14 +15,14 @@ use crate::{
 pub struct SecureConnection<T: AsyncRW> {
     id: SigningKeyPair,
     other_id: SigningPubKey,
-    stream: AsyncRWWrapper<T>,
+    stream: UnencryptedAsyncRW<T>,
 }
 
 /// Established but unencrypted 1:1 connection
 #[derive(Debug)]
 pub struct Connection<T: AsyncRW> {
     id: SigningKeyPair,
-    stream: AsyncRWWrapper<T>,
+    stream: UnencryptedAsyncRW<T>,
 }
 
 macro_rules! recv {
@@ -41,7 +41,7 @@ impl<T: AsyncRW> Connection<T> {
     pub fn new(id: SigningKeyPair, stream: T) -> Self {
         Self {
             id,
-            stream: AsyncRWWrapper::new(stream),
+            stream: UnencryptedAsyncRW::new(stream),
         }
     }
 
