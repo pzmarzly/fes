@@ -8,19 +8,20 @@ use crate::util::ParcelExt;
 
 use std::{fmt, marker::PhantomData};
 
+/// Signature over Parcel
 #[derive(Clone, Protocol)]
-pub struct Signature<T> {
+pub struct Signature<T: Parcel> {
     pub bytes: [u8; 64],
     pub typed: PhantomData<T>,
 }
 
-impl<T> fmt::Debug for Signature<T> {
+impl<T: Parcel> fmt::Debug for Signature<T> {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         self.bytes[..].fmt(formatter)
     }
 }
 
-impl<T> PartialEq for Signature<T> {
+impl<T: Parcel> PartialEq for Signature<T> {
     fn eq(&self, other: &Signature<T>) -> bool {
         self.bytes[..] == other.bytes[..]
     }
