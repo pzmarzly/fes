@@ -155,7 +155,6 @@ impl<T: AsyncRW> Connection<T> {
     ///
     /// By specifying `other`, you can make sure you are connecting to server you intended
     /// (think: certificate pinning).
-    // TODO: Error::Insecure when both side don't filter other's identity
     pub async fn client_side_upgrade(
         mut self,
         other_id: Option<SigningPubKey>,
