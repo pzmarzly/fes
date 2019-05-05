@@ -1,6 +1,6 @@
-use crate::dh::{DhKeyPair, DhPubKey};
+use crate::crypto::dh::{DhKeyPair, DhPubKey};
 use crate::proto::{ClientSays, ServerSays, UnsignedDH, ProtocolVersion, Nonce};
-use crate::signature::{SigningKeyPair, SigningPubKey};
+use crate::crypto::signature::{SigningKeyPair, SigningPubKey};
 use crate::util::{AsyncRW, AsyncRWWrapper};
 use crate::Error;
 

@@ -1,9 +1,8 @@
 #![feature(async_await, await_macro)]
 
 pub mod connection;
-pub mod dh;
+pub mod crypto;
 pub mod prelude;
-pub mod signature;
 pub mod util;
 
 mod proto;

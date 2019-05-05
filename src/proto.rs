@@ -2,8 +2,8 @@ use protocol_derive::Protocol;
 use rand::rngs::OsRng;
 use rand::RngCore;
 
-use crate::dh::DhPubKey;
-use crate::signature::{Signature, SigningPubKey};
+use crate::crypto::dh::DhPubKey;
+use crate::crypto::signature::{Signature, SigningPubKey};
 
 /// Message signaling supported protocol version.
 ///
