@@ -27,7 +27,7 @@ pub enum Error {
     /// Error originating in `protocol`
     Protocol(protocol::Error),
     /// Other side is speaking a different protocol or
-    /// a different version of fts.
+    /// a different version of `fes`.
     LibVersion,
     /// Other side sent packet that was parsed correctly,
     /// but it was unexpected at this moment
