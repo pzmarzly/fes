@@ -22,13 +22,15 @@ impl<T: Parcel> ParcelExt<T> for T {
     }
 }
 
-/// Alias for `AsyncReadExt + AsyncWriteExt`. See [romio] for example network implementation
+/// Alias for `AsyncReadExt + AsyncWriteExt`
+///
+/// See [romio] for example network implementation.
 ///
 /// [romio]: https://crates.io/crates/romio
 pub trait AsyncRW: AsyncReadExt + AsyncWriteExt + Unpin {}
 impl<T: AsyncReadExt + AsyncWriteExt + Unpin> AsyncRW for T {}
 
-/// Low level AsyncRW wrapper. Sends and parses unencrypted Parcels
+/// Low level AsyncRW wrapper - sends and parses unencrypted Parcels and their size
 #[derive(Debug, PartialEq)]
 pub(crate) struct AsyncRWWrapper<T: AsyncRW>(pub T);
 

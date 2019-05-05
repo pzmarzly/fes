@@ -46,7 +46,7 @@ impl<T: AsyncRW> Connection<T> {
         }
     }
 
-    /// Treat other side of AsyncRW as server, try to upgrade connection to encrypted one.
+    /// Treat other side of AsyncRW as server, try to upgrade connection to encrypted one
     ///
     /// By specifying `other`, you can make sure you are connecting to server you intended
     /// (think: certificate pinning).
@@ -97,7 +97,7 @@ impl<T: AsyncRW> Connection<T> {
         Ok(secure)
     }
 
-    /// Treat other side of AsyncRW as client, try to upgrade connection to encrypted one.
+    /// Treat other side of AsyncRW as client, try to upgrade connection to encrypted one
     ///
     /// By specifying `accept_only`, you can whitelist clients.
     pub async fn server_side_upgrade(

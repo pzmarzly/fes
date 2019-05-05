@@ -6,7 +6,7 @@ use crate::crypto::{
     signature::{Signature, SigningPubKey},
 };
 
-/// Message signaling supported protocol version.
+/// Message signaling supported protocol version
 ///
 /// Different type is sent back in case of connecting to an echo server.
 #[derive(Debug, PartialEq, Protocol, Clone, Copy)]
