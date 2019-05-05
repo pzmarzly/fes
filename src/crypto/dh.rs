@@ -16,7 +16,7 @@ pub struct DhKeyPair {
 }
 
 /// Shared, securely derived key for symmetric cryptography
-#[derive(Clone)]
+#[derive(Debug, PartialEq, Clone, Protocol)]
 pub struct SharedEncryptionKey {
     pub key: [u8; 32],
 }

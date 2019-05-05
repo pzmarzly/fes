@@ -1,5 +1,8 @@
 #![feature(async_await, await_macro)]
 
+//! **You must ensure that at least 1 side verifies other's identity,
+//! otherwise man-in-the-middle attack can be done against your program.**
+
 pub mod crypto;
 
 mod proto;
@@ -69,7 +72,11 @@ impl<T: AsyncRW> UnencryptedAsyncRW<T> {
     }
 
     pub async fn send(&mut self, item: impl Parcel) -> Result<(), Error> {
-        let data = item.to_bytes();
+        let bytes = item.to_bytes();
+        await!(self.send_bytes(&bytes))
+    }
+
+    pub async fn send_bytes<'a>(&'a mut self, data: &'a [u8]) -> Result<(), Error> {
         let data_len = (data.len() as u32).to_le_bytes();
         await!(self.0.write_all(&data_len))?;
         await!(self.0.write_all(&data))?;
@@ -77,38 +84,50 @@ impl<T: AsyncRW> UnencryptedAsyncRW<T> {
     }
 
     pub async fn recv<P: Parcel>(&mut self) -> Result<P, Error> {
-        let mut data_len = [0u8; 4];
-        await!(self.0.read_exact(&mut data_len))?;
-
-        let mut data = Vec::with_capacity(u32::from_le_bytes(data_len) as usize);
-        await!(self.0.read_exact(&mut data))?;
+        let data = await!(self.recv_bytes())?;
 
         Ok(P::from_bytes(&data)?)
     }
 
+    pub async fn recv_bytes(&mut self) -> Result<Vec<u8>, Error> {
+        let mut data_len = [0u8; 4];
+        await!(self.0.read_exact(&mut data_len))?;
+        let mut data = Vec::with_capacity(u32::from_le_bytes(data_len) as usize);
+        await!(self.0.read_exact(&mut data))?;
+        Ok(data)
+    }
+
     fn into_encrypted(self, shared: SharedEncryptionKey, nonce: Nonce) -> EncryptedAsyncRW<T> {
-        EncryptedAsyncRW(self.0)
+        EncryptedAsyncRW {
+            unencrypted: self,
+            key: shared,
+            nonce: u128::from(nonce.0),
+        }
     }
 }
 
 /// AsyncRW wrapper - sends and parses encrypted Parcels and their size
 #[derive(Debug, PartialEq)]
-pub(crate) struct EncryptedAsyncRW<T: AsyncRW>(pub T);
+pub(crate) struct EncryptedAsyncRW<T: AsyncRW> {
+    unencrypted: UnencryptedAsyncRW<T>,
+    key: SharedEncryptionKey,
+    nonce: u128,
+}
 
 impl<T: AsyncRW> EncryptedAsyncRW<T> {}
 
 /// Established and encrypted 1:1 connection
 #[derive(Debug)]
 pub struct SecureConnection<T: AsyncRW> {
-    id: SigningKeyPair,
-    other_id: SigningPubKey,
+    pub id: SigningKeyPair,
+    pub other_id: SigningPubKey,
     stream: EncryptedAsyncRW<T>,
 }
 
-/// Established but unencrypted 1:1 connection
+/// Established but unencrypted 1:1 connection - start here
 #[derive(Debug)]
 pub struct Connection<T: AsyncRW> {
-    id: SigningKeyPair,
+    pub id: SigningKeyPair,
     stream: UnencryptedAsyncRW<T>,
 }
 
