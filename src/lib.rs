@@ -14,7 +14,7 @@ use protocol::{Parcel, Settings};
 pub enum Error {
     /// Async I/O error
     Io(futures::io::Error),
-    /// Error originating in protocol crate
+    /// Error originating in `protocol`
     Protocol(protocol::Error),
     /// Other side is speaking a different protocol or
     /// a different version of fts.
@@ -26,7 +26,9 @@ pub enum Error {
     Rejected,
 }
 
-/// Parcel convenience extension - parse and encode Parcels with default settings
+/// Auto-derived convenience extension for working with `protocol`
+///
+/// Parses and encodes Parcels with default settings.
 pub trait ParcelExt<T> {
     fn to_bytes(&self) -> Vec<u8>;
     fn from_bytes(bytes: &[u8]) -> Result<T, Error>;
