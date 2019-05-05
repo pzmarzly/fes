@@ -66,7 +66,7 @@ impl<T: Stream> Connection<T> {
             _ => return Err(Error::Logic),
         };
 
-        let keys = EncryptionKeyPair::generate();
+        let keys = DhKeyPair::generate();
         let nonce = Nonce::generate();
         send!(self, ClientSays::DH(UnsignedDH(keys.public(), nonce)));
 
@@ -117,7 +117,7 @@ impl<T: Stream> Connection<T> {
             _ => return Err(Error::Logic),
         };
 
-        let keys = EncryptionKeyPair::generate();
+        let keys = DhKeyPair::generate();
         let unsigned = UnsignedDH(keys.public(), nonce);
         let signature = self.id.sign(&unsigned);
         send!(self, ServerSays::DH(unsigned, signature));

@@ -27,7 +27,7 @@ impl<T: AsyncReadExt + AsyncWriteExt + Unpin> Stream for T {}
 
 /// Low level Stream wrapper. Sends and parses unencrypted Parcels
 #[derive(Debug, PartialEq)]
-pub struct StreamWrapper<T: Stream>(pub T);
+pub(crate) struct StreamWrapper<T: Stream>(pub T);
 
 impl<T: Stream> StreamWrapper<T> {
     pub fn new(stream: T) -> Self {
