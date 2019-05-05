@@ -10,7 +10,7 @@ use protocol::{Parcel, Settings};
 
 use crate::{
     crypto::{
-        dh::{DhKeyPair, DhPubKey},
+        dh::{DhKeyPair, SharedEncryptionKey},
         signature::{SigningKeyPair, SigningPubKey},
     },
     proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH},
@@ -86,7 +86,7 @@ impl<T: AsyncRW> UnencryptedAsyncRW<T> {
         Ok(P::from_bytes(&data)?)
     }
 
-    fn into_encrypted(self) -> EncryptedAsyncRW<T> {
+    fn into_encrypted(self, shared: SharedEncryptionKey, nonce: Nonce) -> EncryptedAsyncRW<T> {
         EncryptedAsyncRW(self.0)
     }
 }
@@ -177,7 +177,7 @@ impl<T: AsyncRW> Connection<T> {
         let secure = SecureConnection {
             id: self.id,
             other_id: server_id,
-            stream: self.stream.into_encrypted(),
+            stream: self.stream.into_encrypted(shared, nonce),
         };
 
         Ok(secure)
@@ -215,12 +215,14 @@ impl<T: AsyncRW> Connection<T> {
         let signature = self.id.sign(&unsigned);
         send!(self, ServerSays::DH(unsigned, signature));
 
+        let shared = keys.dh(&client_key);
+
         return Ok(SecureConnection {
             id: self.id,
             other_id: SigningPubKey {
                 public_key: [0; 32],
             },
-            stream: self.stream.into_encrypted(),
+            stream: self.stream.into_encrypted(shared, nonce),
         });
     }
 }

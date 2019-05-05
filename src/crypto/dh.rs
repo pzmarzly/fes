@@ -15,6 +15,12 @@ pub struct DhKeyPair {
     pub public_key: PublicKey,
 }
 
+/// Shared, securely derived key for symmetric cryptography
+#[derive(Clone)]
+pub struct SharedEncryptionKey {
+    pub key: [u8; 32],
+}
+
 impl DhKeyPair {
     pub fn generate() -> Self {
         let mut rng = OsRng::new().unwrap();
@@ -25,7 +31,7 @@ impl DhKeyPair {
             public_key: public,
         }
     }
-    pub fn dh(&self, other_public_key: &DhPubKey) -> [u8; 32] {
+    pub fn dh(&self, other_public_key: &DhPubKey) -> SharedEncryptionKey {
         let mut other_public_key_c = [0u8; 32];
         other_public_key_c.copy_from_slice(&other_public_key.public_key[..]);
 
@@ -35,7 +41,7 @@ impl DhKeyPair {
 
         let mut bytes_c = [0u8; 32];
         bytes_c.copy_from_slice(&bytes[..]);
-        bytes_c
+        SharedEncryptionKey { key: bytes_c }
     }
     /// Clone `DhKeyPair` public key into new `DhPubKey`
     pub fn public(&self) -> DhPubKey {
