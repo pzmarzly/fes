@@ -2,8 +2,11 @@
 
 //! **You must ensure that at least 1 side verifies other's identity,
 //! otherwise man-in-the-middle attack can be done against your program.**
+//!
+//! ![diagram](/connection.png)
 
-pub mod crypto;
+mod dh;
+pub mod signature;
 
 mod proto;
 
@@ -12,11 +15,9 @@ use futures::io::{AsyncReadExt, AsyncWriteExt};
 use protocol::{Parcel, Settings};
 
 use crate::{
-    crypto::{
-        dh::{DhKeyPair, SharedEncryptionKey},
-        signature::{SigningKeyPair, SigningPubKey},
-    },
+    dh::{DhKeyPair, SharedEncryptionKey},
     proto::{ClientSays, Nonce, ProtocolVersion, ServerSays, UnsignedDH},
+    signature::{SigningKeyPair, SigningPubKey},
 };
 
 /// Wrapper for possible crate errors
@@ -158,8 +159,8 @@ impl<T: AsyncRW> Connection<T> {
     pub async fn client_side_upgrade(
         mut self,
         other_id: Option<SigningPubKey>,
-        proto_version: ProtocolVersion,
     ) -> Result<SecureConnection<T>, Error> {
+        let proto_version = ProtocolVersion::v1();
         send!(self, ClientSays::Hello(proto_version));
 
         let server_id = match recv!(self) {
@@ -207,8 +208,8 @@ impl<T: AsyncRW> Connection<T> {
     pub async fn server_side_upgrade(
         mut self,
         accept_only: Option<&[SigningPubKey]>,
-        proto_version: ProtocolVersion,
     ) -> Result<SecureConnection<T>, Error> {
+        let proto_version = ProtocolVersion::v1();
         match recv!(self) {
             ClientSays::Hello(p) => {
                 if p != proto_version {

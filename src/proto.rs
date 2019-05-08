@@ -1,20 +1,26 @@
 use protocol_derive::Protocol;
 use rand::{rngs::OsRng, RngCore};
 
-use crate::crypto::{
+use crate::{
     dh::DhPubKey,
     signature::{Signature, SigningPubKey},
 };
 
-/// Message signaling supported protocol version
+/// Message signaling protocol version
 ///
-/// Different type is sent back in case of connecting to an echo server.
+/// Different data is sent back in case of connecting to an echo server.
+///
+/// https://random.org/bytes
 #[derive(Debug, PartialEq, Protocol, Clone, Copy)]
-pub struct ProtocolVersion(pub u64);
+pub struct ProtocolVersion(u64);
 
 impl ProtocolVersion {
+    pub fn v1() -> Self {
+        Self(0xf8171202f71a39d5)
+    }
     pub fn reply(&self) -> ProtocolReply {
-        ProtocolReply(self.0.wrapping_add(1))
+        // match self { 0x... -> 0x... }
+        ProtocolReply(0xc2df3fd948e534a2)
     }
 }
 

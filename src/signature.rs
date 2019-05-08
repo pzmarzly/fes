@@ -1,3 +1,5 @@
+//! Signatures are used to sign data and verify others' identities
+
 use ed25519_dalek::{Keypair, PublicKey, SecretKey, Signature as DSignature};
 use protocol::Parcel;
 use protocol_derive::Protocol;
