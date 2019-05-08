@@ -1,1 +1,5 @@
 - public fields -> getters
+- server_side_upgrade_pred(..., accept_only: fn(SigningPubKey) -> bool)
+- actual encryption
+- rename SigningPubKey -> PubKey
+- seeded_generate()
