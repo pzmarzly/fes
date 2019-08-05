@@ -3,3 +3,23 @@
 - actual encryption
 - rename SigningPubKey -> PubKey
 - seeded_generate()
+
+https://blog.yoshuawuyts.com/rust-streams/
+- stream->duplex
+
+different ideas:
+    - read() and write() as functions of type T in `struct Connection<T>`, for unlimited backends?
+    - merge with `movie` and have code like:
+        fn main() { register_handler!(InitTransaction, transaction); ... }
+        fn transaction(init: InitTransaction) {
+            ...
+            send!(InitOk);
+            // Option 1. While `transaction()` is waiting, other functions can operate, using different message types.
+            // Option 2. Proper channel multiplexing. Is it needed?
+            expect!(NormalTransaction, UncommonTransaction, CancelTransaction) {
+                NormalTransaction => ...
+                UncommonTransaction => ...
+                CancelTransaction => ...
+            }
+            send!(TransactionOk);
+        }
