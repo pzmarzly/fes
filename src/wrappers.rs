@@ -54,21 +54,21 @@ impl<T: AsyncRW> EncryptedAsyncRW<T> {}
 
 macro_rules! recv {
     ($src:ident) => {
-        await!($src.stream.recv())?
+        await!($src.remote.recv())?
     };
 }
 
 macro_rules! send {
     ($src:ident, $expression:expr) => {
-        await!($src.stream.send($expression))?
+        await!($src.remote.send($expression))?
     };
 }
 
 impl<T: AsyncRW> Connection<T> {
-    pub fn new(id: SigningKeyPair, stream: T) -> Self {
+    pub fn new(id: SigningKeyPair, remote: T) -> Self {
         Self {
             id,
-            stream: UnencryptedAsyncRW::new(stream),
+            remote: UnencryptedAsyncRW::new(remote),
         }
     }
 
@@ -115,8 +115,8 @@ impl<T: AsyncRW> Connection<T> {
         let shared = keys.dh(&server_key);
         let secure = SecureConnection {
             id: self.id,
-            other_id: server_id,
-            stream: self.stream.into_encrypted(shared, nonce),
+            other_id: Some(server_id),
+            remote: self.remote.into_encrypted(shared, nonce),
         };
 
         Ok(secure)
@@ -156,12 +156,12 @@ impl<T: AsyncRW> Connection<T> {
 
         let shared = keys.dh(&client_key);
 
-        return Ok(SecureConnection {
+        let mut secure = SecureConnection {
             id: self.id,
-            other_id: SigningPubKey {
-                public_key: [0; 32],
-            },
-            stream: self.stream.into_encrypted(shared, nonce),
-        });
+            other_id: None,
+            remote: self.remote.into_encrypted(shared, nonce),
+        };
+
+        Ok(secure)
     }
 }

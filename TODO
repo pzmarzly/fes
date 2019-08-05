@@ -1,14 +1,7 @@
-- public fields -> getters
 - server_side_upgrade_pred(..., accept_only: fn(SigningPubKey) -> bool)
 - actual encryption
-- rename SigningPubKey -> PubKey
-- seeded_generate()
-
-https://blog.yoshuawuyts.com/rust-streams/
-- stream->duplex
 
 different ideas:
-    - read() and write() as functions of type T in `struct Connection<T>`, for unlimited backends?
     - merge with `movie` and have code like:
         fn main() { register_handler!(InitTransaction, transaction); ... }
         fn transaction(init: InitTransaction) {

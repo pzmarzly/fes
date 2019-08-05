@@ -54,7 +54,7 @@ impl<T: Parcel> ParcelExt<T> for T {
     }
 }
 
-/// Alias for `AsyncReadExt + AsyncWriteExt`
+/// Alias for `AsyncReadExt + AsyncWriteExt + Unpin`
 ///
 /// See [romio] for example network implementation.
 ///
@@ -78,13 +78,13 @@ pub(crate) struct EncryptedAsyncRW<T: AsyncRW> {
 #[derive(Debug)]
 pub struct SecureConnection<T: AsyncRW> {
     pub id: SigningKeyPair,
-    pub other_id: SigningPubKey,
-    stream: EncryptedAsyncRW<T>,
+    pub other_id: Option<SigningPubKey>,
+    remote: EncryptedAsyncRW<T>,
 }
 
 /// Established but unencrypted 1:1 connection - start here
 #[derive(Debug)]
 pub struct Connection<T: AsyncRW> {
     pub id: SigningKeyPair,
-    stream: UnencryptedAsyncRW<T>,
+    remote: UnencryptedAsyncRW<T>,
 }
