@@ -1,5 +1,10 @@
 - server_side_upgrade_pred(..., accept_only: fn(SigningPubKey) -> bool)
 - actual encryption
+https://cesarb.github.io/chacha20-poly1305-aead/chacha20_poly1305_aead/fn.encrypt.html
+https://withoutboats.github.io/romio/romio/struct.TcpStream.html
+- finish negotiation algorithm
+- key rotation
+- multiplexing (maybe)
 
 different ideas:
     - merge with `movie` and have code like:
